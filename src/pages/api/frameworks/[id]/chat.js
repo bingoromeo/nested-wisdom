@@ -1,3 +1,5 @@
+export const prerender = false;
+
 // src/pages/api/chat.js
 export async function post({ request }) {
   const { prompt, character } = await request.json();
