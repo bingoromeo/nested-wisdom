@@ -6,7 +6,7 @@ import Layout from "../components/Layout.astro";
   <div style="max-width: 700px; margin: auto; padding: 2rem;">
     <h1 style="text-align: center;">🦜 Talk to Lily or Bingo</h1>
     <input id="userInput" placeholder="Ask your question..." style="width: 100%; padding: 0.5rem; margin-top: 1rem;" />
-    
+
     <div style="text-align: center; margin-top: 1rem;">
       <button onclick="sendTo('lily')">Talk to Lily</button>
       <button onclick="sendTo('bingo')">Talk to Bingo</button>
@@ -15,9 +15,15 @@ import Layout from "../components/Layout.astro";
     <div id="chatOutput" style="margin-top: 2rem; white-space: pre-wrap;"></div>
   </div>
 
-  <script>
-    async function sendTo(character) {
-      const message = document.getElementById("userInput").value;
+  <script type="module">
+    async function sendTo(character: string) {
+      const input = document.getElementById("userInput") as HTMLInputElement;
+      const chatBox = document.getElementById("chatOutput");
+
+      if (!input || !chatBox) return;
+
+      const message = input.value;
+
       const res = await fetch("/.netlify/functions/askOpenAI", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -25,7 +31,7 @@ import Layout from "../components/Layout.astro";
       });
 
       const reply = await res.text();
-      document.getElementById("chatOutput").textContent = reply;
+      chatBox.textContent = reply;
     }
   </script>
 </Layout>
