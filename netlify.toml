@@ -4,4 +4,3 @@
 [build]
   publish = "dist"
   command = "npm run build"
-fix functions directory typo
