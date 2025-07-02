@@ -15,9 +15,9 @@ import Layout from "../components/Layout.astro";
     <div id="chatOutput" style="margin-top: 2rem; white-space: pre-wrap;"></div>
   </div>
 
-  <script type="module">
-    async function sendTo(character: string) {
-      const input = document.getElementById("userInput") as HTMLInputElement;
+  <script>
+    async function sendTo(character) {
+      const input = document.getElementById("userInput");
       const chatBox = document.getElementById("chatOutput");
 
       if (!input || !chatBox) return;
