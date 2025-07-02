@@ -1,37 +1,19 @@
----
-import Layout from "../components/Layout.astro";
----
+<script>
+  async function sendTo(character) {
+    const input = document.getElementById("userInput");
+    const chatBox = document.getElementById("chatOutput");
 
-<Layout title="Welcome to Nested Wisdom">
-  <div style="max-width: 700px; margin: auto; padding: 2rem;">
-    <h1 style="text-align: center;">🦜 Talk to Lily or Bingo</h1>
-    <input id="userInput" placeholder="Ask your question..." style="width: 100%; padding: 0.5rem; margin-top: 1rem;" />
+    if (!input || !chatBox) return;
 
-    <div style="text-align: center; margin-top: 1rem;">
-      <button onclick="sendTo('lily')">Talk to Lily</button>
-      <button onclick="sendTo('bingo')">Talk to Bingo</button>
-    </div>
+    const message = input.value;
 
-    <div id="chatOutput" style="margin-top: 2rem; white-space: pre-wrap;"></div>
-  </div>
+    const res = await fetch("/.netlify/functions/askOpenAI", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ character, message })
+    });
 
-  <script>
-    async function sendTo(character) {
-      const input = document.getElementById("userInput");
-      const chatBox = document.getElementById("chatOutput");
-
-      if (!input || !chatBox) return;
-
-      const message = input.value;
-
-      const res = await fetch("/.netlify/functions/askOpenAI", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ character, message })
-      });
-
-      const reply = await res.text();
-      chatBox.textContent = reply;
-    }
-  </script>
-</Layout>
+    const reply = await res.text();
+    chatBox.textContent = reply;
+  }
+</script>
