@@ -1,6 +1,11 @@
 [build]
-  publish = "dist"
+  functions = "netlify/functions"
   command = "npm run build"
+  publish = "dist"
 
-[template]
-  required-extensions = ["supabase"]
+[dev]
+  framework = "#custom"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
