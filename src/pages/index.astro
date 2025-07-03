@@ -1,7 +1,7 @@
 <script>
-  async function sendTo(character) {
-    const input = document.getElementById("userInput");
-    const chatBox = document.getElementById("chatOutput");
+  async function sendTo(character: string) {
+    const input = document.getElementById("userInput") as HTMLInputElement;
+    const chatBox = document.getElementById("chatOutput") as HTMLElement;
 
     if (!input || !chatBox) return;
 
@@ -10,7 +10,7 @@
     const res = await fetch("/.netlify/functions/askOpenAI", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ character, message })
+      body: JSON.stringify({ character, message }),
     });
 
     const reply = await res.text();
