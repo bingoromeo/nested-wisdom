@@ -1,10 +1,15 @@
-const fetch = require("node-fetch");
+export async function handler(event) {
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: "Method Not Allowed" })
+    };
+  }
 
-exports.handler = async (event) => {
   try {
     const { character, message } = JSON.parse(event.body);
 
-    const reply = `Hi! This is ${character}. You said: "${message}"`;
+    const reply = `Hello from ${character}. You asked: ${message}`;
 
     return {
       statusCode: 200,
@@ -13,7 +18,7 @@ exports.handler = async (event) => {
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Something went wrong." })
+      body: JSON.stringify({ error: "Server Error", details: error.message })
     };
   }
-};
+}
