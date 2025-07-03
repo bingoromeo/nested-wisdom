@@ -1,28 +1,32 @@
-// File: netlify/functions/askOpenAI.js
-
-exports.handler = async (event) => {
+exports.handler = async function (event, context) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      body: JSON.stringify({ error: "Method Not Allowed" })
+      body: JSON.stringify({ error: "Method Not Allowed" }),
     };
   }
 
   try {
-    const body = JSON.parse(event.body);
-    const { message, character } = body;
+    const { message, character } = JSON.parse(event.body);
 
-    // Simulate a response for now
-    const reply = `Hello from ${character}. You asked: ${message}`;
+    // Simulate a response based on character
+    let reply = "";
+    if (character === "Lily") {
+      reply = `Lily says: Thank you for your question!`;
+    } else if (character === "Bingo") {
+      reply = `Bingo says: Let's figure this out together.`;
+    } else {
+      reply = `Unknown character.`;
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ reply })
+      body: JSON.stringify({ reply }),
     };
-  } catch (error) {
+  } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Server Error", details: error.message })
+      body: JSON.stringify({ error: "Failed to parse request or generate response." }),
     };
   }
 };
