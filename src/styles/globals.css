@@ -1,17 +1,8 @@
-@import 'tailwindcss';
-@plugin "@tailwindcss/typography";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@layer base {
-  a {
-    @apply hover:underline hover:underline-offset-2 hover:decoration-green-500;
-  }
-  td {
-    @apply pt-4 pb-6;
-  }
-  th {
-    @apply py-4;
-  }
-  img {
-    @apply border rounded-sm border-neutral-500;
-  }
+/* Your custom styles go below */
+body {
+  font-family: 'Inter', sans-serif;
 }

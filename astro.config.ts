@@ -1,6 +1,6 @@
 import { defineConfig } from 'astro/config';
+import tailwind from '@astrojs/tailwind';
 import netlify from '@astrojs/netlify';
-import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   markdown: {
@@ -8,11 +8,6 @@ export default defineConfig({
       theme: 'github-light-high-contrast',
     },
   },
-  vite: {
-    plugins: [tailwindcss()],
-    server: {
-      allowedHosts: ['.netlify.app']
-    }
-  },
-  adapter: netlify()
+  integrations: [tailwind()],
+  adapter: netlify(),
 });
