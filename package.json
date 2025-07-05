@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.5",
+    "astro": "^5.11.0",
     "openai": "^4.104.0"
   }
 }
