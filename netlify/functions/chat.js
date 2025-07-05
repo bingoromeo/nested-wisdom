@@ -1,6 +1,10 @@
-const { OpenAI } = require("openai");
+const { Configuration, OpenAIApi } = require("openai");
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const openai = new OpenAIApi(configuration);
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== "POST") {
@@ -13,23 +17,26 @@ exports.handler = async (event, context) => {
   try {
     const { character, message } = JSON.parse(event.body);
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const prompt = `${character} says: ${message}`;
+
+    const completion = await openai.createChatCompletion({
+      model: "gpt-4", // or gpt-3.5-turbo
       messages: [
-        { role: "system", content: `You are ${character}, a wise talking parrot.` },
-        { role: "user", content: message }
+        { role: "system", content: `You are ${character}, a helpful parrot assistant.` },
+        { role: "user", content: message },
       ],
-      max_tokens: 200,
     });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ reply: response.choices[0].message.content }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reply: completion.data.choices[0].message.content }),
     };
-  } catch (err) {
+  } catch (error) {
+    console.error("Error in chat function:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error", details: err.message }),
+      body: JSON.stringify({ error: "Failed to fetch reply." }),
     };
   }
 };
