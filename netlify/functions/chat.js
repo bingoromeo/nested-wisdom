@@ -9,17 +9,22 @@ exports.handler = async (event) => {
   try {
     const { character, message } = JSON.parse(event.body);
 
-    // Dummy response – you can customize this later
-    const reply = `This is a placeholder reply from ${character}. You asked: "${message}"`;
+    const reply = `Hi from ${character}! You asked: "${message}"`;
 
     return {
       statusCode: 200,
       body: JSON.stringify({ reply }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error" }),
+      body: JSON.stringify({ error: "Internal Server Error", details: error.message }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     };
   }
 };
