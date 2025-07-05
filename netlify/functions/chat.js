@@ -1,33 +1,46 @@
-exports.handler = async (event) => {
+// File: netlify/functions/chat.js
+
+const { OpenAI } = require("openai");
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+exports.handler = async (event, context) => {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      body: JSON.stringify({ error: "Method Not Allowed" }),
+      body: JSON.stringify({ error: "Method Not Allowed" })
     };
   }
 
   try {
-    const { character, message } = JSON.parse(event.body || "{}");
+    const { character, message } = JSON.parse(event.body);
 
-    if (!character || !message) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Missing character or message" }),
-      };
-    }
+    const systemPrompt =
+      character === "Lily"
+        ? "You are Lily, a wise and nurturing parrot life coach."
+        : "You are Bingo, a humorous and insightful parrot who loves discussing trading and investing.";
 
-    // Dummy response – customize later
-    const reply = `This is a placeholder reply from ${character}. You asked: "${message}"`;
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message }
+      ]
+    });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ reply }),
+      body: JSON.stringify({
+        reply: completion.choices[0].message.content.trim()
+      })
     };
-  } catch (error) {
-    console.error("Function error:", error);
+  } catch (err) {
+    console.error("Function error:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error" }),
+      body: JSON.stringify({ error: "Internal Server Error" })
     };
   }
 };
