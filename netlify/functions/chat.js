@@ -2,29 +2,32 @@ exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      body: "Method Not Allowed",
+      body: JSON.stringify({ error: "Method Not Allowed" }),
     };
   }
 
   try {
-    const { character, message } = JSON.parse(event.body);
+    const { character, message } = JSON.parse(event.body || "{}");
 
-    const reply = `Hi from ${character}! You asked: "${message}"`;
+    if (!character || !message) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Missing character or message" }),
+      };
+    }
+
+    // Dummy response – customize later
+    const reply = `This is a placeholder reply from ${character}. You asked: "${message}"`;
 
     return {
       statusCode: 200,
       body: JSON.stringify({ reply }),
-      headers: {
-        "Content-Type": "application/json",
-      },
     };
   } catch (error) {
+    console.error("Function error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error", details: error.message }),
-      headers: {
-        "Content-Type": "application/json",
-      },
+      body: JSON.stringify({ error: "Internal Server Error" }),
     };
   }
 };
