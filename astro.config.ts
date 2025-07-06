@@ -1,9 +1,9 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
-import netlify from '@astrojs/netlify/functions'; // using serverless Netlify adapter
+import netlify from '@astrojs/netlify/functions';
 
 export default defineConfig({
-  integrations: [tailwind()],
   output: 'server',
-  adapter: netlify({}), // <-- pass an empty config object
-})
+  adapter: netlify({}),
+  integrations: [tailwind()],
+});
