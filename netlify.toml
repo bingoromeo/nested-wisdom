@@ -1,5 +1,5 @@
 [build] 
-  publish = "dist"
+  publish = ".astro"
   functions = "netlify/functions"
   command = "npm run build"
 
