@@ -8,6 +8,8 @@
     "dev": "netlify dev"
   },
   "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/netlify": "^6.4.1",
     "@astrojs/tailwind": "^6.0.2",
     "@supabase/supabase-js": "^2.39.5",
     "@tailwindcss/typography": "^0.5.16",
@@ -15,9 +17,7 @@
     "autoprefixer": "^10.4.21",
     "openai": "^4.104.0",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.3"
-  },
-  "devDependencies": {
-    "@astrojs/netlify": "^4.1.1"
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3"
   }
 }
