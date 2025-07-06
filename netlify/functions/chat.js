@@ -1,3 +1,11 @@
+const { Configuration, OpenAIApi } = require("openai");
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const openai = new OpenAIApi(configuration);
+
 exports.handler = async (event, context) => {
   if (event.httpMethod === "OPTIONS") {
     return {
@@ -5,35 +13,28 @@ exports.handler = async (event, context) => {
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Methods": "POST, OPTIONS"
       },
-      body: "OK",
+      body: "",
     };
   }
 
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: {
-        "Access-Control-Allow-Origin": "*"
-      },
+      headers: { "Access-Control-Allow-Origin": "*" },
       body: JSON.stringify({ error: "Method Not Allowed" }),
     };
   }
 
   try {
-    const body = JSON.parse(event.body);
-    const { character, message } = body;
+    const { character, message } = JSON.parse(event.body);
 
-    let characterPrompt = "";
-
-    if (character === "Lily") {
-      characterPrompt = "You are Lily, a kind, gentle, and caring conversational guide.";
-    } else if (character === "Bingo") {
-      characterPrompt = "You are Bingo, a lively, fun, and energetic assistant.";
-    } else {
-      characterPrompt = "You are a helpful assistant.";
-    }
+    const characterPrompt = character === "Lily"
+      ? "You are Lily, a kind and gentle guide."
+      : character === "Bingo"
+      ? "You are Bingo, an energetic and fun assistant."
+      : "You are a helpful assistant.";
 
     const completion = await openai.createChatCompletion({
       model: "gpt-4",
@@ -46,21 +47,18 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
       },
       body: JSON.stringify({ reply: completion.data.choices[0].message.content }),
     };
   } catch (err) {
-    console.error("Chat function error:", err);
+    console.error("Chat error:", err);
     return {
       statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Origin": "*"
-      },
+      headers: { "Access-Control-Allow-Origin": "*" },
       body: JSON.stringify({ error: "Something went wrong" }),
     };
   }
 };
-
 // force redeploy
