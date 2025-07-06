@@ -15,12 +15,25 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { character, message } = JSON.parse(event.body);
+    const body = JSON.parse(event.body);
+    const { character, message } = body;
+
+    console.log("Character received:", character);  // ✅ Log for debugging
+
+    let characterPrompt = "";
+
+    if (character === "Lily") {
+      characterPrompt = "You are Lily, a kind, gentle, and caring conversational guide. Speak with empathy and calm support.";
+    } else if (character === "Bingo") {
+      characterPrompt = "You are Bingo, a lively, fun, and energetic assistant. Be playful, creative, and expressive.";
+    } else {
+      characterPrompt = "You are a helpful assistant.";
+    }
 
     const completion = await openai.createChatCompletion({
       model: "gpt-4",
       messages: [
-        { role: "system", content: `You are ${character}, a helpful parrot assistant.` },
+        { role: "system", content: characterPrompt },
         { role: "user", content: message },
       ],
     });
