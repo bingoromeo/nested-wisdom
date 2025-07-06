@@ -17,10 +17,8 @@ exports.handler = async (event, context) => {
   try {
     const { character, message } = JSON.parse(event.body);
 
-    const prompt = `${character} says: ${message}`;
-
     const completion = await openai.createChatCompletion({
-      model: "gpt-4", // or gpt-3.5-turbo
+      model: "gpt-4",
       messages: [
         { role: "system", content: `You are ${character}, a helpful parrot assistant.` },
         { role: "user", content: message },
@@ -32,11 +30,11 @@ exports.handler = async (event, context) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reply: completion.data.choices[0].message.content }),
     };
-  } catch (error) {
-    console.error("Error in chat function:", error);
+  } catch (err) {
+    console.error("Chat function error:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Failed to fetch reply." }),
+      body: JSON.stringify({ error: "Something went wrong" }),
     };
   }
 };
