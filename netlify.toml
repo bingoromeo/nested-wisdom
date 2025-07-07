@@ -4,11 +4,11 @@
   functions = "functions"
 
 [functions]
-  directory = "functions"
   node_bundler = "esbuild"
 
+# Optional: only if you need rewrites for nicer frontend URLs
+# Example: redirect /api/chat to /.netlify/functions/chat
 [[redirects]]
-  from = "functions/*"
-  to = "functions/:splat"
+  from = "/api/:splat"
+  to = "/.netlify/functions/:splat"
   status = 200
-  force = true
