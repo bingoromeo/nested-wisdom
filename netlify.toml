@@ -1,14 +1,14 @@
+
 [build]
   command = "npm run build"
   publish = "dist"
   functions = "functions"
 
 [functions]
+  directory = "functions"
   node_bundler = "esbuild"
 
-# Optional: only if you need rewrites for nicer frontend URLs
-# Example: redirect /api/chat to /.netlify/functions/chat
 [[redirects]]
-  from = "/api/:splat"
+  from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"
   status = 200
