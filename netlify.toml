@@ -1,14 +1,14 @@
 [build]
   command = "npm run build"
   publish = "dist"
-  functions = "netlify/functions"
+  functions = "functions"
 
 [functions]
-  directory = "netlify/functions"
+  directory = "functions"
   node_bundler = "esbuild"
 
 [[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
+  from = "functions/*"
+  to = "functions/:splat"
   status = 200
   force = true
