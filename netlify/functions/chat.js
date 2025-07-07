@@ -64,3 +64,4 @@ exports.handler = async (event) => {
   }
 };
 // force redeploy
+console.log("Method received:", event.httpMethod);
