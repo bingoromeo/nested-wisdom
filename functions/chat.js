@@ -1,5 +1,5 @@
 const { askOpenAI } = require("./askOpenAI");
-
+const { Configuration, OpenAIApi } = require("openai"); // ← this line was missing!
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
