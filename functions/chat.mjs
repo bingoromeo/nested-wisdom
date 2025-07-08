@@ -1,7 +1,7 @@
-import OpenAI from 'openai';
+import { OpenAI } from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
+  apiKey: process.env.OPENAI_API_KEY, // matches .env
 });
 
 export async function handler(event) {
@@ -9,10 +9,10 @@ export async function handler(event) {
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: "gpt-3.5-turbo",
       messages: [
-        { role: 'system', content: `You are ${character}` },
-        { role: 'user', content: message },
+        { role: "system", content: `You are ${character}` },
+        { role: "user", content: message },
       ],
     });
 
