@@ -5,20 +5,19 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-export async function handler(event) {
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS"
-  };
+// /netlify/functions/chat.js
 
-  if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers,
-      body: ""
-    };
-  }
+exports.handler = async (event) => {
+  const { character, message } = JSON.parse(event.body || "{}");
+
+  const reply = `Hello! How are you today?`;
+
+  return {
+    statusCode: 200,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reply }),
+  };
+};
 
   if (event.httpMethod !== "POST") {
     return {
