@@ -42,12 +42,12 @@ export async function handler(event) {
     });
 
     return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "https://nestedwisdom.com"
-      },
-      body: JSON.stringify({ reply: response.choices[0].message.content })
-    };
+  statusCode: 200,
+  headers: {
+    'Access-Control-Allow-Origin': 'https://nestedwisdom.com',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  },
+  body: JSON.stringify({ reply }),
   } catch (err) {
     return {
       statusCode: 500,
