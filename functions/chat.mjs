@@ -1,10 +1,22 @@
 import { OpenAI } from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // matches .env
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function handler(event) {
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "https://nestedwisdom.com",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+      body: "OK",
+    };
+  }
+
   const { character, message } = JSON.parse(event.body || '{}');
 
   try {
@@ -18,11 +30,17 @@ export async function handler(event) {
 
     return {
       statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "https://nestedwisdom.com",
+      },
       body: JSON.stringify({ reply: response.choices[0].message.content }),
     };
   } catch (err) {
     return {
       statusCode: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "https://nestedwisdom.com",
+      },
       body: JSON.stringify({ error: err.message }),
     };
   }
