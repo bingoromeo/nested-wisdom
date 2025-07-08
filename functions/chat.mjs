@@ -1,3 +1,4 @@
+// /functions/chat.mjs
 import { OpenAI } from "openai";
 
 const openai = new OpenAI({
@@ -5,19 +6,20 @@ const openai = new OpenAI({
 });
 
 export async function handler(event) {
+  // CORS Preflight check
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin": "https://nestedwisdom.com",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
       },
-      body: "OK",
+      body: "",
     };
   }
 
-  const { character, message } = JSON.parse(event.body || '{}');
+  const { character, message } = JSON.parse(event.body || "{}");
 
   try {
     const response = await openai.chat.completions.create({
