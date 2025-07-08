@@ -5,19 +5,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// /netlify/functions/chat.js
-
-exports.handler = async (event) => {
-  const { character, message } = JSON.parse(event.body || "{}");
-
-  const reply = `Hello! How are you today?`;
-
-  return {
-    statusCode: 200,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reply }),
-  };
-};
+export async function handler(event) {
+  const headers = { "Content-Type": "application/json" };
 
   if (event.httpMethod !== "POST") {
     return {
