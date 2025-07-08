@@ -1,21 +1,13 @@
+// netlify/functions/chat.mjs
 import { OpenAI } from "openai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-const allowedOrigins = [
-  "https://nestedwisdom.com",
-  "https://www.nestedwisdom.com"
-];
-
 export async function handler(event) {
-  const origin = event.headers.origin || event.headers.Origin || "";
-
   const headers = {
-    "Access-Control-Allow-Origin": allowedOrigins.includes(origin)
-      ? origin
-      : allowedOrigins[0], // fallback to main domain
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS"
   };
