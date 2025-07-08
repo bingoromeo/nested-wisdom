@@ -14,7 +14,7 @@ export async function handler(event) {
   const origin = event.headers.origin;
 
   const headers = {
-    "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : "https://nestedwisdom.com",
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : "",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS"
   };
