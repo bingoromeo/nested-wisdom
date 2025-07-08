@@ -6,13 +6,20 @@ const openai = new OpenAI({
 });
 
 export async function handler(event) {
+  const allowedOrigins = [
+    "https://nestedwisdom.com",
+    "https://www.nestedwisdom.com"
+  ];
+
+  const origin = event.headers.origin || "";
+  const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+
   const headers = {
-    "Access-Control-Allow-Origin": "https://nestedwisdom.com",
+    "Access-Control-Allow-Origin": corsOrigin,
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS"
   };
 
-  // Handle preflight
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
