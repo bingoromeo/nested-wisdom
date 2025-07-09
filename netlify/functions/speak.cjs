@@ -81,7 +81,7 @@ exports.handler = async function (event) {
             "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
             "Content-Type": "text/plain",
           },
-          body: audioBuffer.toString("base64Audio"),
+          body: audioBuffer.toString("base64"),
           isBase64Encoded: false,
         });
       });
