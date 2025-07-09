@@ -57,16 +57,13 @@ exports.handler = async function (event) {
     headers: {
       "xi-api-key": ELEVENLABS_API_KEY,
       "Content-Type": "application/json",
-      "Accept": "audio/mpeg",
+      Accept: "audio/mpeg",
     },
   };
 
   const postData = JSON.stringify({
     text,
-    voice_settings: {
-      stability: 0.75,
-      similarity_boost: 0.75,
-    },
+    voice_settings: { stability: 0.3, similarity_boost: 0.75 },
   });
 
   return new Promise((resolve) => {
@@ -75,14 +72,15 @@ exports.handler = async function (event) {
       res.on("data", (chunk) => chunks.push(chunk));
       res.on("end", () => {
         const audioBuffer = Buffer.concat(chunks);
+        const base64Audio = audioBuffer.toString("base64");
+
         resolve({
           statusCode: 200,
           headers: {
             "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-            "Content-Type": "audio/mpeg",
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ audio: audioBuffer.toString("base64") }),
-          isBase64Encoded: true,
+          body: JSON.stringify({ audio: base64Audio }),
         });
       });
     });
