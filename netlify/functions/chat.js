@@ -1,7 +1,5 @@
 // netlify/functions/chat.js
-
-// Handles CORS preflight requests
-export async function handler(event) {
+exports.handler = async function (event) {
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -18,49 +16,39 @@ export async function handler(event) {
     return {
       statusCode: 405,
       headers: {
-        "Allow": "POST",
         "Access-Control-Allow-Origin": "*",
-        "Content-Type": "application/json",
+        "Allow": "POST",
       },
       body: JSON.stringify({ error: "Method Not Allowed" }),
     };
   }
 
-  let character, message;
   try {
-    const body = JSON.parse(event.body || "{}");
-    character = body.character;
-    message = body.message;
+    const { character, message } = JSON.parse(event.body || "{}");
+
+    if (!character || !message) {
+      return {
+        statusCode: 400,
+        headers: { "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({ error: "Missing character or message" }),
+      };
+    }
+
+    const reply = `Hi from ${character}! You said: "${message}"`;
+
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reply }),
+    };
   } catch (err) {
     return {
-      statusCode: 400,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ error: "Invalid JSON" }),
+      statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify({ error: "Server error" }),
     };
   }
-
-  if (!character || !message) {
-    return {
-      statusCode: 400,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ error: "Missing character or message" }),
-    };
-  }
-
-  const reply = `Hi! You said: \"${message}\"`;
-
-  return {
-    statusCode: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ reply }),
-  };
-}
+};
