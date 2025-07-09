@@ -1,5 +1,4 @@
 // netlify/functions/chat.cjs
-
 const OpenAI = require("openai");
 
 const openai = new OpenAI({
@@ -49,7 +48,7 @@ exports.handler = async function (event) {
   }
 
   try {
-    const completion = await openai.chat.completions.create({
+    const chatCompletion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
@@ -60,7 +59,7 @@ exports.handler = async function (event) {
       ],
     });
 
-    const reply = completion.choices[0].message.content.trim();
+    const reply = chatCompletion.choices[0].message.content.trim();
 
     return {
       statusCode: 200,
