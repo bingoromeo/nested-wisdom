@@ -4,6 +4,7 @@ const { Readable } = require("stream");
 
 const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+
 const voiceMap = {
   Lily: "pjcYQlDFKMbcOUp6F5GD",
   Bingo: "v9LgF91V36LGgbLX3iHW",
@@ -42,6 +43,7 @@ exports.handler = async function (event) {
 
   const { character, text } = body;
   const voiceId = voiceMap[character];
+
   if (!voiceId || !text) {
     return {
       statusCode: 400,
@@ -57,13 +59,13 @@ exports.handler = async function (event) {
     headers: {
       "xi-api-key": ELEVENLABS_API_KEY,
       "Content-Type": "application/json",
-      "Accept": "audio/mpeg",
+      Accept: "audio/mpeg",
     },
   };
 
   const postData = JSON.stringify({ text });
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const req = https.request(options, (res) => {
       let chunks = [];
       res.on("data", (chunk) => chunks.push(chunk));
