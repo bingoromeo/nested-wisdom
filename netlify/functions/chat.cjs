@@ -8,8 +8,25 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 exports.handler = async function (event) {
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "https://www.nestedwisdom.com",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    };
+  }
+
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
+    return {
+      statusCode: 405,
+      headers: {
+        "Access-Control-Allow-Origin": "https://www.nestedwisdom.com",
+      },
+      body: "Method Not Allowed",
+    };
   }
 
   let body;
@@ -18,6 +35,10 @@ exports.handler = async function (event) {
   } catch (err) {
     return {
       statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "https://www.nestedwisdom.com",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ reply: "Invalid request body." }),
     };
   }
@@ -26,6 +47,10 @@ exports.handler = async function (event) {
   if (!character || !message) {
     return {
       statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "https://www.nestedwisdom.com",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ reply: "Missing character or message." }),
     };
   }
@@ -34,7 +59,10 @@ exports.handler = async function (event) {
     const completion = await openai.createChatCompletion({
       model: "gpt-4",
       messages: [
-        { role: "system", content: `You are ${character}, a wise and witty parrot who speaks to users.` },
+        {
+          role: "system",
+          content: `You are ${character}, a wise and witty parrot who speaks to users.`,
+        },
         { role: "user", content: message },
       ],
     });
@@ -44,7 +72,7 @@ exports.handler = async function (event) {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": "https://www.nestedwisdom.com",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ reply }),
@@ -53,6 +81,10 @@ exports.handler = async function (event) {
     console.error("OpenAI error:", err);
     return {
       statusCode: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "https://www.nestedwisdom.com",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ reply: "AI error occurred." }),
     };
   }
