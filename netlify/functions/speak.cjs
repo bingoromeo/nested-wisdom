@@ -72,9 +72,13 @@ exports.handler = async function (event) {
   return new Promise((resolve) => {
     const req = https.request(options, (res) => {
       let chunks = [];
+
       res.on("data", (chunk) => chunks.push(chunk));
+
       res.on("end", () => {
         const audioBuffer = Buffer.concat(chunks);
+        console.log("🎤 TTS replied with " + audioBuffer.length + " bytes, status:", res.statusCode);
+
         resolve({
           statusCode: 200,
           headers: {
