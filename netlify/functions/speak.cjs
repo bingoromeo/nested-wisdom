@@ -81,7 +81,7 @@ exports.handler = async function (event) {
             "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
             "Content-Type": "audio/mpeg",
           },
-          body: audioBuffer.toString("base64"),
+          body: JSON.stringify({ audio: audioBuffer.toString("base64") }),
           isBase64Encoded: true,
         });
       });
