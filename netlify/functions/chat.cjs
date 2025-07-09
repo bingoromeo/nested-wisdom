@@ -1,4 +1,5 @@
-// netlify/functions/chat.js
+// netlify/functions/chat.cjs
+
 exports.handler = async function (event) {
   if (event.httpMethod === "OPTIONS") {
     return {
@@ -15,10 +16,7 @@ exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Allow": "POST",
-      },
+      headers: { "Access-Control-Allow-Origin": "*" },
       body: JSON.stringify({ error: "Method Not Allowed" }),
     };
   }
@@ -34,21 +32,19 @@ exports.handler = async function (event) {
       };
     }
 
-    const reply = `Hi from ${character}! You said: "${message}"`;
-
     return {
       statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ reply }),
+      body: JSON.stringify({ reply: `Hi from ${character}! You said: "${message}"` }),
     };
-  } catch (err) {
+  } catch {
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ error: "Server error" }),
+      body: JSON.stringify({ error: "Invalid request format" }),
     };
   }
 };
