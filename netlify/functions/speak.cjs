@@ -1,3 +1,4 @@
+// netlify/functions/speak.cjs
 const https = require("https");
 
 const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
@@ -35,18 +36,17 @@ exports.handler = async function (event) {
     return {
       statusCode: 400,
       headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-      body: JSON.stringify({ error: "Invalid request body." }),
+      body: "Invalid JSON.",
     };
   }
 
   const { character, text } = body;
   const voiceId = voiceMap[character];
-
   if (!voiceId || !text) {
     return {
       statusCode: 400,
       headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-      body: JSON.stringify({ error: "Missing character or text." }),
+      body: "Missing character or text.",
     };
   }
 
@@ -63,7 +63,10 @@ exports.handler = async function (event) {
 
   const postData = JSON.stringify({
     text,
-    voice_settings: { stability: 0.3, similarity_boost: 0.75 },
+    voice_settings: {
+      stability: 0.3,
+      similarity_boost: 0.75,
+    },
   });
 
   return new Promise((resolve) => {
@@ -72,15 +75,14 @@ exports.handler = async function (event) {
       res.on("data", (chunk) => chunks.push(chunk));
       res.on("end", () => {
         const audioBuffer = Buffer.concat(chunks);
-        const base64Audio = audioBuffer.toString("base64");
-
         resolve({
           statusCode: 200,
           headers: {
             "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-            "Content-Type": "application/json",
+            "Content-Type": "text/plain",
           },
-          body: JSON.stringify({ audio: base64Audio }),
+          body: audioBuffer.toString("base64Audio"),
+          isBase64Encoded: false,
         });
       });
     });
@@ -90,7 +92,7 @@ exports.handler = async function (event) {
       resolve({
         statusCode: 500,
         headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-        body: JSON.stringify({ error: "Text-to-speech failed." }),
+        body: "Text-to-speech failed.",
       });
     });
 
