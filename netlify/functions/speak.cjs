@@ -1,6 +1,4 @@
-// netlify/functions/speak.cjs
 const https = require("https");
-const { Readable } = require("stream");
 
 const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
@@ -59,11 +57,17 @@ exports.handler = async function (event) {
     headers: {
       "xi-api-key": ELEVENLABS_API_KEY,
       "Content-Type": "application/json",
-      Accept: "audio/mpeg",
+      "Accept": "audio/mpeg",
     },
   };
 
-  const postData = JSON.stringify({ text });
+  const postData = JSON.stringify({
+    text,
+    voice_settings: {
+      stability: 0.75,
+      similarity_boost: 0.75,
+    },
+  });
 
   return new Promise((resolve) => {
     const req = https.request(options, (res) => {
