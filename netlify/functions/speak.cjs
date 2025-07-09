@@ -1,4 +1,3 @@
-    }
 
     const audioBuffer = await response.arrayBuffer();
     return {
