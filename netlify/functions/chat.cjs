@@ -1,11 +1,10 @@
 // netlify/functions/chat.cjs
-const { Configuration, OpenAIApi } = require("openai");
 
-const configuration = new Configuration({
+const OpenAI = require("openai");
+
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-const openai = new OpenAIApi(configuration);
 
 const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 
@@ -50,7 +49,7 @@ exports.handler = async function (event) {
   }
 
   try {
-    const completion = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
@@ -61,7 +60,7 @@ exports.handler = async function (event) {
       ],
     });
 
-    const reply = completion.data.choices[0].message.content.trim();
+    const reply = completion.choices[0].message.content.trim();
 
     return {
       statusCode: 200,
