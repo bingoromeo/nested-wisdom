@@ -1,9 +1,6 @@
-// netlify/functions/speak.cjs
 const https = require("https");
 
-const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-
 const voiceMap = {
   Lily: "pjcYQlDFKMbcOUp6F5GD",
   Bingo: "v9LgF91V36LGgbLX3iHW",
@@ -14,7 +11,7 @@ exports.handler = async function (event) {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
       },
@@ -24,7 +21,7 @@ exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      headers: { "Access-Control-Allow-Origin": "*" },
       body: "Method Not Allowed",
     };
   }
@@ -35,18 +32,19 @@ exports.handler = async function (event) {
   } catch {
     return {
       statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-      body: "Invalid JSON.",
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: "Invalid JSON",
     };
   }
 
   const { character, text } = body;
   const voiceId = voiceMap[character];
+
   if (!voiceId || !text) {
     return {
       statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-      body: "Missing character or text.",
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: "Missing character or text",
     };
   }
 
@@ -72,17 +70,13 @@ exports.handler = async function (event) {
   return new Promise((resolve) => {
     const req = https.request(options, (res) => {
       const chunks = [];
-
       res.on("data", (chunk) => chunks.push(chunk));
-
       res.on("end", () => {
         const audioBuffer = Buffer.concat(chunks);
-        console.log("🎤 ElevenLabs replied with", audioBuffer.length, "bytes");
-
         resolve({
           statusCode: 200,
           headers: {
-            "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+            "Access-Control-Allow-Origin": "*",
             "Content-Type": "text/plain",
           },
           body: audioBuffer.toString("base64"),
@@ -91,10 +85,10 @@ exports.handler = async function (event) {
     });
 
     req.on("error", (e) => {
-      console.error("TTS Error:", e);
+      console.error("TTS error:", e);
       resolve({
         statusCode: 500,
-        headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+        headers: { "Access-Control-Allow-Origin": "*" },
         body: "Text-to-speech failed.",
       });
     });
