@@ -52,6 +52,7 @@ exports.handler = async function (event) {
 
   const postData = JSON.stringify({
     text,
+    model_id: "eleven_monolingual_v1",
     voice_settings: { stability: 0.3, similarity_boost: 0.75 },
   });
 
@@ -73,13 +74,14 @@ exports.handler = async function (event) {
       res.on("data", (chunk) => chunks.push(chunk));
       res.on("end", () => {
         const audioBuffer = Buffer.concat(chunks);
+        const base64Audio = audioBuffer.toString("base64");
         resolve({
           statusCode: 200,
           headers: {
             "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
             "Content-Type": "text/plain",
           },
-          body: audioBuffer.toString("base64"),
+          body: base64Audio,
         });
       });
     });
