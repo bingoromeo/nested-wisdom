@@ -71,13 +71,13 @@ exports.handler = async function (event) {
 
   return new Promise((resolve) => {
     const req = https.request(options, (res) => {
-      let chunks = [];
+      const chunks = [];
 
       res.on("data", (chunk) => chunks.push(chunk));
 
       res.on("end", () => {
         const audioBuffer = Buffer.concat(chunks);
-        console.log("🎤 TTS replied with " + audioBuffer.length + " bytes, status:", res.statusCode);
+        console.log("🎤 ElevenLabs replied with", audioBuffer.length, "bytes");
 
         resolve({
           statusCode: 200,
@@ -86,7 +86,6 @@ exports.handler = async function (event) {
             "Content-Type": "text/plain",
           },
           body: audioBuffer.toString("base64"),
-          isBase64Encoded: false,
         });
       });
     });
