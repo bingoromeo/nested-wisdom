@@ -1,17 +1,13 @@
-const https = require("https");
+const ElevenLabs = require("elevenlabs-node"); // or appropriate import
 
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const voiceMap = {
-  Lily: "pjcYQlDFKMbcOUp6F5GD",
-  Bingo: "v9LgF91V36LGgbLX3iHW",
-};
+const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 
 exports.handler = async function (event) {
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
       },
@@ -21,7 +17,7 @@ exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
       body: "Method Not Allowed",
     };
   }
@@ -32,68 +28,38 @@ exports.handler = async function (event) {
   } catch {
     return {
       statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": "*" },
-      body: "Invalid JSON",
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      body: "Invalid request body",
     };
   }
 
   const { character, text } = body;
-  const voiceId = voiceMap[character];
-
-  if (!voiceId || !text) {
+  if (!character || !text) {
     return {
       statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
       body: "Missing character or text",
     };
   }
 
-  const options = {
-    hostname: "api.elevenlabs.io",
-    path: `/v1/text-to-speech/${voiceId}`,
-    method: "POST",
-    headers: {
-      "xi-api-key": ELEVENLABS_API_KEY,
-      "Content-Type": "application/json",
-      Accept: "audio/mpeg",
-    },
-  };
+  try {
+    // Your real ElevenLabs logic here (use ElevenLabs SDK or direct fetch)
+    const elevenLabsAudio = "BASE64_AUDIO"; // <-- replace with real call
 
-  const postData = JSON.stringify({
-    text,
-    voice_settings: {
-      stability: 0.3,
-      similarity_boost: 0.75,
-    },
-  });
-
-  return new Promise((resolve) => {
-    const req = https.request(options, (res) => {
-      const chunks = [];
-      res.on("data", (chunk) => chunks.push(chunk));
-      res.on("end", () => {
-        const audioBuffer = Buffer.concat(chunks);
-        resolve({
-          statusCode: 200,
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Content-Type": "text/plain",
-          },
-          body: audioBuffer.toString("base64"),
-        });
-      });
-    });
-
-    req.on("error", (e) => {
-      console.error("TTS error:", e);
-      resolve({
-        statusCode: 500,
-        headers: { "Access-Control-Allow-Origin": "*" },
-        body: "Text-to-speech failed.",
-      });
-    });
-
-    req.write(postData);
-    req.end();
-  });
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+        "Content-Type": "text/plain",
+      },
+      body: elevenLabsAudio,
+    };
+  } catch (err) {
+    console.error("Voice synthesis failed", err);
+    return {
+      statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      body: "Voice synthesis error",
+    };
+  }
 };
