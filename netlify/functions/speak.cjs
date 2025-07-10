@@ -69,26 +69,28 @@ exports.handler = async function (event) {
 
   return new Promise((resolve) => {
     const req = https.request(options, (res) => {
-      let chunks = [];
+      const chunks = [];
 
       res.on("data", (chunk) => chunks.push(chunk));
       res.on("end", () => {
         const audioBuffer = Buffer.concat(chunks);
-        const base64Audio = audioBuffer.toString("base64");
         resolve({
           statusCode: 200,
           headers: {
             "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-            "Content-Type": "text/plain",
+            "Content-Type": "audio/mpeg",
+            "Content-Disposition": "inline; filename=\"voice.mp3\"",
+            "Cache-Control": "no-cache",
+            "Content-Transfer-Encoding": "base64",
           },
-          body: base64Audio,
-          isBase64Encoded: false, // Crucial for JS decoding correctly
+          isBase64Encoded: true,
+          body: audioBuffer.toString("base64"),
         });
       });
     });
 
     req.on("error", (e) => {
-      console.error("❌ ElevenLabs TTS error:", e);
+      console.error("ElevenLabs TTS error:", e);
       resolve({
         statusCode: 500,
         headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
