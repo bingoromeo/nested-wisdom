@@ -82,13 +82,13 @@ exports.handler = async function (event) {
             "Content-Type": "text/plain",
           },
           body: base64Audio,
-          isBase64Encoded: true, // ✅ required for binary audio playback!
+          isBase64Encoded: false, // Crucial for JS decoding correctly
         });
       });
     });
 
     req.on("error", (e) => {
-      console.error("ElevenLabs TTS error:", e);
+      console.error("❌ ElevenLabs TTS error:", e);
       resolve({
         statusCode: 500,
         headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
