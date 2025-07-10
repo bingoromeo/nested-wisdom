@@ -52,7 +52,6 @@ exports.handler = async function (event) {
 
   const postData = JSON.stringify({
     text,
-    model_id: "eleven_monolingual_v1",
     voice_settings: { stability: 0.3, similarity_boost: 0.75 },
   });
 
@@ -69,7 +68,7 @@ exports.handler = async function (event) {
 
   return new Promise((resolve) => {
     const req = https.request(options, (res) => {
-      const chunks = [];
+      let chunks = [];
 
       res.on("data", (chunk) => chunks.push(chunk));
       res.on("end", () => {
@@ -79,9 +78,6 @@ exports.handler = async function (event) {
           headers: {
             "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
             "Content-Type": "audio/mpeg",
-            "Content-Disposition": "inline; filename=\"voice.mp3\"",
-            "Cache-Control": "no-cache",
-            "Content-Transfer-Encoding": "base64",
           },
           isBase64Encoded: true,
           body: audioBuffer.toString("base64"),
