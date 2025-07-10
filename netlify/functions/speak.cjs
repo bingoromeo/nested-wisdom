@@ -1,7 +1,7 @@
 // netlify/functions/speak.cjs
 const https = require("https");
 
-const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
+const ALLOWED_ORIGIN = "*";
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 
 const voiceMap = {
