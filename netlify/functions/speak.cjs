@@ -100,8 +100,7 @@ exports.handler = async function (event) {
       });
     });
 
-    res.on("end", () => {
-  console.log("ElevenLabs TTS status:", res.statusCode);
-  console.log("Received audio size:", Buffer.concat(chunks).length);
-  ...
-});
+    req.write(postData);
+    req.end();
+  });
+};
