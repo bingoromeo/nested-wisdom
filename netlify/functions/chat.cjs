@@ -1,15 +1,9 @@
 // netlify/functions/chat.cjs
 const OpenAI = require("openai");
-const { createClient } = require("@supabase/supabase-js");
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
 
 const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 
@@ -53,8 +47,6 @@ exports.handler = async function (event) {
     };
   }
 
-  const ip = event.headers["x-forwarded-for"] || "unknown";
-
   try {
     const chatCompletion = await openai.chat.completions.create({
       model: "gpt-4",
@@ -68,13 +60,6 @@ exports.handler = async function (event) {
     });
 
     const reply = chatCompletion.choices[0].message.content.trim();
-
-    // Log to Supabase without breaking app if it fails
-    try {
-      await supabase.from("usage_logs").insert([{ ip_address: ip, character }]);
-    } catch (logErr) {
-      console.error("Supabase logging error:", logErr);
-    }
 
     return {
       statusCode: 200,
