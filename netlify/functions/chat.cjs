@@ -3,16 +3,16 @@ const OpenAI = require("openai");
 const { createClient } = require("@supabase/supabase-js");
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// TEMPORARY FOR DEBUGGING — Replace "*" with your exact domain when fixed
-const ALLOWED_ORIGIN = "*";
+// Set this to your frontend domain
+const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 
 exports.handler = async function (event) {
+  // Handle preflight CORS
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
