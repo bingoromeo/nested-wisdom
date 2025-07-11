@@ -9,19 +9,20 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Allow frontend origin
+// Match frontend domain (Netlify + HTTPS)
 const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 
 exports.handler = async function (event) {
-  // CORS preflight request
+  const headers = {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
+      headers,
       body: "",
     };
   }
@@ -29,7 +30,7 @@ exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      headers,
       body: "Method Not Allowed",
     };
   }
@@ -40,7 +41,7 @@ exports.handler = async function (event) {
   } catch {
     return {
       statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      headers,
       body: JSON.stringify({ reply: "Invalid request body." }),
     };
   }
@@ -49,7 +50,7 @@ exports.handler = async function (event) {
   if (!character || !message) {
     return {
       statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      headers,
       body: JSON.stringify({ reply: "Missing character or message." }),
     };
   }
@@ -71,7 +72,7 @@ exports.handler = async function (event) {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+        ...headers,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ reply }),
@@ -80,7 +81,7 @@ exports.handler = async function (event) {
     console.error("OpenAI error:", err);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      headers,
       body: JSON.stringify({ reply: "AI error occurred." }),
     };
   }
