@@ -3,15 +3,16 @@ const OpenAI = require("openai");
 const { createClient } = require("@supabase/supabase-js");
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// Allow your public site through CORS
 const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 
 exports.handler = async function (event) {
+  // CORS preflight support
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -20,6 +21,7 @@ exports.handler = async function (event) {
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
       },
+      body: "",
     };
   }
 
@@ -34,7 +36,8 @@ exports.handler = async function (event) {
   let body;
   try {
     body = JSON.parse(event.body);
-  } catch {
+  } catch (err) {
+    console.error("Invalid JSON:", err);
     return {
       statusCode: 400,
       headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
@@ -64,18 +67,6 @@ exports.handler = async function (event) {
     });
 
     const reply = chatCompletion.choices[0].message.content.trim();
-
-    // 👇 Log usage to Supabase
-    try {
-      const ip =
-        event.headers["x-forwarded-for"] ||
-        event.headers["client-ip"] ||
-        "unknown";
-
-      await supabase.from("usage_logs").insert([{ ip_address: ip, character }]);
-    } catch (logErr) {
-      console.error("Supabase log error:", logErr.message);
-    }
 
     return {
       statusCode: 200,
