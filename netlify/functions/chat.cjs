@@ -10,7 +10,7 @@ const supabase = createClient(
 );
 
 // 👇 This must match EXACTLY your frontend origin
-const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
+const ALLOWED_ORIGIN = "*";
 
 exports.handler = async function (event) {
   const headers = {
