@@ -3,16 +3,16 @@ const OpenAI = require("openai");
 const { createClient } = require("@supabase/supabase-js");
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Allow your public site through CORS
+// TEMPORARY FOR DEBUGGING — Replace "*" with your exact domain when fixed
 const ALLOWED_ORIGIN = "*";
 
 exports.handler = async function (event) {
-  // CORS preflight support
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -36,8 +36,7 @@ exports.handler = async function (event) {
   let body;
   try {
     body = JSON.parse(event.body);
-  } catch (err) {
-    console.error("Invalid JSON:", err);
+  } catch {
     return {
       statusCode: 400,
       headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
