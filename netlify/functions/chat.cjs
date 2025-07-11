@@ -11,10 +11,16 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 const MAX_FREE_MESSAGES = 2;
 
 exports.handler = async function (event) {
+  const origin = event.headers.origin;
+  const allowedOrigins = [
+    "https://www.nestedwisdom.com",
+    "https://nestedwisdom.com"
+  ];
+  const ALLOWED_ORIGIN = allowedOrigins.includes(origin) ? origin : "";
+
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
