@@ -108,10 +108,12 @@ async function logUsage(ip, character) {
 }
 
 async function getUsageCount(ip) {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from("usage_logs")
     .select("*", { count: "exact" })
-    .eq("ip_address", ip);
+    .eq("ip_address", ip)
+    .gte("timestamp", since);
   return data?.length || 0;
 }
 
