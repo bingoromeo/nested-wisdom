@@ -1,100 +1,81 @@
-// netlify/functions/speak.cjs
-const https = require("https");
+// ./api/speak.cjs
 
-const ALLOWED_ORIGIN = "*";
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+const fetch = require('node-fetch');
 
-const voiceMap = {
-  Lily: "pjcYQlDFKMbcOUp6F5GD",
-  Bingo: "v9LgF91V36LGgbLX3iHW",
-};
-
-exports.handler = async function (event) {
-  if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
-    };
-  }
-
-  if (event.httpMethod !== "POST") {
+exports.handler = async function (event, context) {
+  if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-      body: "Method Not Allowed",
+      body: 'Method Not Allowed',
     };
   }
 
-  let body;
   try {
-    body = JSON.parse(event.body);
-  } catch {
-    return {
-      statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-      body: "Invalid JSON.",
-    };
-  }
+    const { text, character } = JSON.parse(event.body);
+    if (!text || !character) {
+      return {
+        statusCode: 400,
+        body: 'Missing `text` or `character` in request body.',
+      };
+    }
 
-  const { character, text } = body;
-  const voiceId = voiceMap[character];
-  if (!voiceId || !text) {
-    return {
-      statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-      body: "Missing character or text.",
-    };
-  }
-
-  const postData = JSON.stringify({
-    text,
-    voice_settings: { stability: 0.3, similarity_boost: 0.75 },
-  });
-
-  const options = {
-    hostname: "api.elevenlabs.io",
-    path: `/v1/text-to-speech/${voiceId}`,
-    method: "POST",
-    headers: {
-      "xi-api-key": ELEVENLABS_API_KEY,
-      "Content-Type": "application/json",
-      Accept: "audio/mpeg",
-    },
-  };
-
-  return new Promise((resolve) => {
-    const req = https.request(options, (res) => {
-      let chunks = [];
-
-      res.on("data", (chunk) => chunks.push(chunk));
-      res.on("end", () => {
-        const audioBuffer = Buffer.concat(chunks);
-        resolve({
-          statusCode: 200,
-          headers: {
-            "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-            "Content-Type": "audio/mpeg",
-          },
-          isBase64Encoded: true,
-          body: audioBuffer.toString("base64"),
-        });
-      });
-    });
-
-    req.on("error", (e) => {
-      console.error("ElevenLabs TTS error:", e);
-      resolve({
+    const elevenlabsApiKey = process.env.ELEVENLABS_API_KEY;
+    if (!elevenlabsApiKey) {
+      return {
         statusCode: 500,
-        headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-        body: "Text-to-speech failed.",
-      });
+        body: 'Missing ElevenLabs API key',
+      };
+    }
+
+    const voiceIdMap = {
+      Lily: 'EXAVITQu4vr4xnSDxMaL',
+      Bingo: 'MF3mGyEYCl7XYWbV9V6O',
+    };
+
+    const voiceId = voiceIdMap[character];
+    if (!voiceId) {
+      return {
+        statusCode: 400,
+        body: 'Invalid character name.',
+      };
+    }
+
+    const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'xi-api-key': elevenlabsApiKey,
+      },
+      body: JSON.stringify({
+        text,
+        model_id: 'eleven_monolingual_v1',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+        },
+      }),
     });
 
-    req.write(postData);
-    req.end();
-  });
+    if (!voiceResponse.ok) {
+      const errorText = await voiceResponse.text();
+      return {
+        statusCode: voiceResponse.status,
+        body: `Error from ElevenLabs: ${errorText}`,
+      };
+    }
+
+    const audioBuffer = await voiceResponse.buffer();
+    const base64Audio = audioBuffer.toString('base64');
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'text/plain' },
+      body: base64Audio,
+    };
+  } catch (err) {
+    return {
+      statusCode: 500,
+      body: `Unexpected error: ${err.message}`,
+    };
+  }
 };
