@@ -2,9 +2,7 @@
 const OpenAI = require("openai");
 const { createClient } = require("@supabase/supabase-js");
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -53,8 +51,6 @@ exports.handler = async function (event) {
     };
   }
 
-  const ip = event.headers["x-forwarded-for"] || "unknown";
-
   try {
     const chatCompletion = await openai.chat.completions.create({
       model: "gpt-4",
@@ -69,10 +65,16 @@ exports.handler = async function (event) {
 
     const reply = chatCompletion.choices[0].message.content.trim();
 
+    // 👇 Log usage to Supabase
     try {
+      const ip =
+        event.headers["x-forwarded-for"] ||
+        event.headers["client-ip"] ||
+        "unknown";
+
       await supabase.from("usage_logs").insert([{ ip_address: ip, character }]);
     } catch (logErr) {
-      console.error("Supabase logging failed:", logErr.message);
+      console.error("Supabase log error:", logErr.message);
     }
 
     return {
