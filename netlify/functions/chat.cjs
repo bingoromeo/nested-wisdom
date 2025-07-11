@@ -3,26 +3,24 @@ const OpenAI = require("openai");
 const { createClient } = require("@supabase/supabase-js");
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// 👇 This must match EXACTLY your frontend origin
-const ALLOWED_ORIGIN = "*";
+// Adjust based on your actual frontend
+const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 
 exports.handler = async function (event) {
-  const headers = {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-
+  // Preflight
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
-      headers,
+      headers: {
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
       body: "",
     };
   }
@@ -30,7 +28,9 @@ exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers,
+      headers: {
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+      },
       body: "Method Not Allowed",
     };
   }
@@ -41,7 +41,9 @@ exports.handler = async function (event) {
   } catch {
     return {
       statusCode: 400,
-      headers,
+      headers: {
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+      },
       body: JSON.stringify({ reply: "Invalid request body." }),
     };
   }
@@ -50,7 +52,9 @@ exports.handler = async function (event) {
   if (!character || !message) {
     return {
       statusCode: 400,
-      headers,
+      headers: {
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+      },
       body: JSON.stringify({ reply: "Missing character or message." }),
     };
   }
@@ -69,10 +73,13 @@ exports.handler = async function (event) {
 
     const reply = chatCompletion.choices[0].message.content.trim();
 
+    // OPTIONAL: Save message to Supabase
+    // await supabase.from('messages').insert([{ character, message, reply }]);
+
     return {
       statusCode: 200,
       headers: {
-        ...headers,
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ reply }),
@@ -81,8 +88,11 @@ exports.handler = async function (event) {
     console.error("OpenAI error:", err);
     return {
       statusCode: 500,
-      headers,
-      body: JSON.stringify({ reply: "AI error occurred." }),
+      headers: {
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reply: "Oops! Something went wrong." }),
     };
   }
 };
