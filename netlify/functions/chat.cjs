@@ -9,7 +9,7 @@ const supabase = createClient(
 );
 
 // Allow your public site through CORS
-const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
+const ALLOWED_ORIGIN = "*";
 
 exports.handler = async function (event) {
   // CORS preflight support
