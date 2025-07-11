@@ -1,9 +1,7 @@
-// ./api/speak.cjs
-
 const fetch = require('node-fetch');
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*', // You can replace * with your domain for stricter security
+  'Access-Control-Allow-Origin': '*', // For production: restrict to 'https://www.nestedwisdom.com'
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
@@ -26,7 +24,7 @@ exports.handler = async function (event, context) {
   }
 
   try {
-    const { text, character } = JSON.parse(event.body);
+    const { text, character, voice_id } = JSON.parse(event.body);
     if (!text || !character) {
       return {
         statusCode: 400,
@@ -44,21 +42,22 @@ exports.handler = async function (event, context) {
       };
     }
 
+    // Fallback voice map
     const voiceIdMap = {
-      Lily: 'EXAVITQu4vr4xnSDxMaL',
-      Bingo: 'MF3mGyEYCl7XYWbV9V6O',
+      Lily: 'pjcYQlDFKMbcOUp6F5GD',
+      Bingo: 'v9LgF91V36LGgbLX3iHW',
     };
 
-    const voiceId = voiceIdMap[character];
-    if (!voiceId) {
+    const selectedVoiceId = voice_id || voiceIdMap[character];
+    if (!selectedVoiceId) {
       return {
         statusCode: 400,
         headers: CORS_HEADERS,
-        body: 'Invalid character name.',
+        body: 'Missing or invalid voice ID.',
       };
     }
 
-    const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
