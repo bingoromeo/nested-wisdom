@@ -12,7 +12,6 @@ const supabase = createClient(
 );
 
 const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
-const MAX_FREE_MESSAGES = 2;
 
 exports.handler = async function (event) {
   if (event.httpMethod === "OPTIONS") {
@@ -57,19 +56,8 @@ exports.handler = async function (event) {
   const ip = event.headers["x-forwarded-for"] || "unknown";
 
   try {
-    const usageCount = await getUsageCount(ip);
-    const paid = await isPaidUser(ip);
-
-    if (!paid && usageCount >= MAX_FREE_MESSAGES) {
-      return {
-        statusCode: 402,
-        headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-        body: JSON.stringify({ reply: "You've reached your free question limit. Please upgrade to continue." }),
-      };
-    }
-
     const chatCompletion = await openai.chat.completions.create({
-      model: paid ? "gpt-4" : "gpt-3.5-turbo",
+      model: "gpt-4",
       messages: [
         {
           role: "system",
@@ -81,7 +69,12 @@ exports.handler = async function (event) {
 
     const reply = chatCompletion.choices[0].message.content.trim();
 
-    await logUsage(ip, character);
+    // Log to Supabase without breaking app if it fails
+    try {
+      await supabase.from("usage_logs").insert([{ ip_address: ip, character }]);
+    } catch (logErr) {
+      console.error("Supabase logging error:", logErr);
+    }
 
     return {
       statusCode: 200,
@@ -100,40 +93,3 @@ exports.handler = async function (event) {
     };
   }
 };
-
-async function logUsage(ip, character) {
-  try {
-    await supabase.from("usage_logs").insert([{ ip_address: ip, character }]);
-  } catch (err) {
-    console.error("Log usage error:", err);
-  }
-}
-
-async function getUsageCount(ip) {
-  try {
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { data, error } = await supabase
-      .from("usage_logs")
-      .select("*", { count: "exact" })
-      .eq("ip_address", ip)
-      .gte("timestamp", since);
-    return data?.length || 0;
-  } catch (err) {
-    console.error("Get usage count error:", err);
-    return 0;
-  }
-}
-
-async function isPaidUser(ip) {
-  try {
-    const { data, error } = await supabase
-      .from("payments")
-      .select("id")
-      .eq("ip_address", ip)
-      .maybeSingle();
-    return !!data;
-  } catch (err) {
-    console.error("Check paid user error:", err);
-    return false;
-  }
-}
