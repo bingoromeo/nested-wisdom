@@ -1,80 +1,39 @@
-// netlify/functions/chat.cjs
-const OpenAI = require("openai");
+const { Configuration, OpenAIApi } = require("openai");
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY, // Make sure this is set in Netlify env vars!
 });
 
-const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
+const openai = new OpenAIApi(configuration);
 
 exports.handler = async function (event) {
-  if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
-    };
-  }
-
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-      body: "Method Not Allowed",
-    };
-  }
-
-  let body;
-  try {
-    body = JSON.parse(event.body);
-  } catch {
-    return {
-      statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-      body: JSON.stringify({ reply: "Invalid request body." }),
-    };
-  }
-
-  const { character, message } = body;
-  if (!character || !message) {
-    return {
-      statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-      body: JSON.stringify({ reply: "Missing character or message." }),
-    };
-  }
+  const { character, message } = JSON.parse(event.body);
 
   try {
-    const chatCompletion = await openai.chat.completions.create({
+    const completion = await openai.createChatCompletion({
       model: "gpt-4",
       messages: [
-        {
-          role: "system",
-          content: `You are ${character}, a wise and witty parrot who speaks to users.`,
-        },
+        { role: "system", content: `You are ${character}, a friendly parrot.` },
         { role: "user", content: message },
       ],
     });
 
-    const reply = chatCompletion.choices[0].message.content.trim();
+    const reply = completion.data.choices[0].message.content;
 
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ reply }),
     };
   } catch (err) {
-    console.error("OpenAI error:", err);
+    console.error(err);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
-      body: JSON.stringify({ reply: "AI error occurred." }),
+      body: JSON.stringify({ reply: "Oops! Something went wrong." }),
     };
   }
+};
 };
