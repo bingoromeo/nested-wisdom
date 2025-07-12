@@ -1,19 +1,13 @@
 // netlify/functions/chat.cjs
 const OpenAI = require("openai");
-const { createClient } = require("@supabase/supabase-js");
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-// Frontend domain (adjust to match your frontend)
 const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 
 exports.handler = async function (event) {
-  // Handle preflight CORS
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -22,34 +16,50 @@ exports.handler = async function (event) {
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
       },
-      body: "",
     };
   }
 
-  // Main POST request handler
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      body: "Method Not Allowed",
+    };
+  }
+
+  let body;
   try {
-    const { character, message } = JSON.parse(event.body);
+    body = JSON.parse(event.body);
+  } catch {
+    return {
+      statusCode: 400,
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      body: JSON.stringify({ reply: "Invalid request body." }),
+    };
+  }
 
-    if (!character || !message) {
-      return {
-        statusCode: 400,
-        headers: {
-          "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+  const { character, message } = body;
+  if (!character || !message) {
+    return {
+      statusCode: 400,
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      body: JSON.stringify({ reply: "Missing character or message." }),
+    };
+  }
+
+  try {
+    const chatCompletion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: `You are ${character}, a wise and witty parrot who speaks to users.`,
         },
-        body: JSON.stringify({ error: "Missing character or message." }),
-      };
-    }
-
-    const prompt = `${character} is talking to a child. Reply in character. Message: "${message}"`;
-
-    const chatResponse = await openai.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "gpt-3.5-turbo",
+        { role: "user", content: message },
+      ],
     });
 
-    const reply = chatResponse.choices[0].message.content;
-
-    // Optional: Store message in Supabase (can be added later)
+    const reply = chatCompletion.choices[0].message.content.trim();
 
     return {
       statusCode: 200,
@@ -60,13 +70,11 @@ exports.handler = async function (event) {
       body: JSON.stringify({ reply }),
     };
   } catch (err) {
-    console.error("Function error:", err);
+    console.error("OpenAI error:", err);
     return {
       statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-      },
-      body: JSON.stringify({ error: "Internal server error." }),
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      body: JSON.stringify({ reply: "AI error occurred." }),
     };
   }
 };
