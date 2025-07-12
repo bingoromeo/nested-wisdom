@@ -1,103 +1,65 @@
-const fetch = require('node-fetch');
+const ElevenLabs = require("elevenlabs-node"); // or appropriate import
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*', // For production: restrict to 'https://www.nestedwisdom.com'
-  'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 
-exports.handler = async function (event, context) {
-  if (event.httpMethod === 'OPTIONS') {
+exports.handler = async function (event) {
+  if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
-      headers: CORS_HEADERS,
-      body: 'OK',
+      headers: {
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
     };
   }
 
-  if (event.httpMethod !== 'POST') {
+  if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: CORS_HEADERS,
-      body: 'Method Not Allowed',
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      body: "Method Not Allowed",
+    };
+  }
+
+  let body;
+  try {
+    body = JSON.parse(event.body);
+  } catch {
+    return {
+      statusCode: 400,
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      body: "Invalid request body",
+    };
+  }
+
+  const { character, text } = body;
+  if (!character || !text) {
+    return {
+      statusCode: 400,
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      body: "Missing character or text",
     };
   }
 
   try {
-    const { text, character, voice_id } = JSON.parse(event.body);
-    if (!text || !character) {
-      return {
-        statusCode: 400,
-        headers: CORS_HEADERS,
-        body: 'Missing `text` or `character` in request body.',
-      };
-    }
-
-    const elevenlabsApiKey = process.env.ELEVENLABS_API_KEY;
-    if (!elevenlabsApiKey) {
-      return {
-        statusCode: 500,
-        headers: CORS_HEADERS,
-        body: 'Missing ElevenLabs API key',
-      };
-    }
-
-    // Fallback voice map
-    const voiceIdMap = {
-      Lily: 'pjcYQlDFKMbcOUp6F5GD',
-      Bingo: 'v9LgF91V36LGgbLX3iHW',
-    };
-
-    const selectedVoiceId = voice_id || voiceIdMap[character];
-    if (!selectedVoiceId) {
-      return {
-        statusCode: 400,
-        headers: CORS_HEADERS,
-        body: 'Missing or invalid voice ID.',
-      };
-    }
-
-    const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'xi-api-key': elevenlabsApiKey,
-      },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_monolingual_v1',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-        },
-      }),
-    });
-
-    if (!voiceResponse.ok) {
-      const errorText = await voiceResponse.text();
-      return {
-        statusCode: voiceResponse.status,
-        headers: CORS_HEADERS,
-        body: `Error from ElevenLabs: ${errorText}`,
-      };
-    }
-
-    const audioBuffer = await voiceResponse.buffer();
-    const base64Audio = audioBuffer.toString('base64');
+    // Your real ElevenLabs logic here (use ElevenLabs SDK or direct fetch)
+    const elevenLabsAudio = "BASE64_AUDIO"; // <-- replace with real call
 
     return {
       statusCode: 200,
       headers: {
-        ...CORS_HEADERS,
-        'Content-Type': 'text/plain',
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+        "Content-Type": "text/plain",
       },
-      body: base64Audio,
+      body: elevenLabsAudio,
     };
   } catch (err) {
+    console.error("Voice synthesis failed", err);
     return {
       statusCode: 500,
-      headers: CORS_HEADERS,
-      body: `Unexpected error: ${err.message}`,
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      body: "Voice synthesis error",
     };
   }
 };
