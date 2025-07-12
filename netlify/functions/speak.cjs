@@ -1,21 +1,26 @@
 const fetch = require('node-fetch');
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': '*', // For production: restrict to 'https://www.nestedwisdom.com'
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-// In-memory cache (will reset on cold start in serverless env)
-const audioCache = new Map();
-
 exports.handler = async function (event, context) {
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers: CORS_HEADERS, body: 'OK' };
+    return {
+      statusCode: 200,
+      headers: CORS_HEADERS,
+      body: 'OK',
+    };
   }
 
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers: CORS_HEADERS, body: 'Method Not Allowed' };
+    return {
+      statusCode: 405,
+      headers: CORS_HEADERS,
+      body: 'Method Not Allowed',
+    };
   }
 
   try {
@@ -30,9 +35,14 @@ exports.handler = async function (event, context) {
 
     const elevenlabsApiKey = process.env.ELEVENLABS_API_KEY;
     if (!elevenlabsApiKey) {
-      return { statusCode: 500, headers: CORS_HEADERS, body: 'Missing API key' };
+      return {
+        statusCode: 500,
+        headers: CORS_HEADERS,
+        body: 'Missing ElevenLabs API key',
+      };
     }
 
+    // Fallback voice map
     const voiceIdMap = {
       Lily: 'pjcYQlDFKMbcOUp6F5GD',
       Bingo: 'v9LgF91V36LGgbLX3iHW',
@@ -44,18 +54,6 @@ exports.handler = async function (event, context) {
         statusCode: 400,
         headers: CORS_HEADERS,
         body: 'Missing or invalid voice ID.',
-      };
-    }
-
-    const cacheKey = `${character}:${text}`;
-    if (audioCache.has(cacheKey)) {
-      return {
-        statusCode: 200,
-        headers: {
-          ...CORS_HEADERS,
-          'Content-Type': 'text/plain',
-        },
-        body: audioCache.get(cacheKey),
       };
     }
 
@@ -86,9 +84,6 @@ exports.handler = async function (event, context) {
 
     const audioBuffer = await voiceResponse.buffer();
     const base64Audio = audioBuffer.toString('base64');
-
-    // Store in memory
-    audioCache.set(cacheKey, base64Audio);
 
     return {
       statusCode: 200,
