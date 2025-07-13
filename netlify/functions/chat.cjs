@@ -1,3 +1,11 @@
+const { Configuration, OpenAIApi } = require("openai");
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const openai = new OpenAIApi(configuration);
+
 exports.handler = async ({ httpMethod, body }) => {
   if (httpMethod === "OPTIONS") {
     return {
@@ -10,6 +18,7 @@ exports.handler = async ({ httpMethod, body }) => {
       body: "",
     };
   }
+
   if (httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -30,22 +39,35 @@ exports.handler = async ({ httpMethod, body }) => {
   }
 
   const { character, message } = data;
-  if (!character || !message) {
+
+  try {
+    const gptResponse = await openai.createChatCompletion({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: `You are ${character}, a wise and helpful parrot.`,
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+    });
+
+    const reply = gptResponse.data.choices[0].message.content;
+
     return {
-      statusCode: 400,
+      statusCode: 200,
       headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ error: "Missing character or message" }),
+      body: JSON.stringify({ reply }),
+    };
+  } catch (error) {
+    console.error("❌ OpenAI Error:", error);
+    return {
+      statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify({ error: "Failed to get response from OpenAI" }),
     };
   }
-
-  const reply = `✅ Hello from ${character}, you said: "${message}"`;
-
-  return {
-    statusCode: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ reply }),
-  };
 };
