@@ -52,7 +52,7 @@ exports.handler = async function (event) {
   }
 
   // 🎯 Personality-based speed settings
-  const speed = character === "Lily" ? 1.0 : 1.1;
+  const speed = character === "Lily" ? 1.1 : 1.1;
 
   const options = {
     hostname: "api.elevenlabs.io",
