@@ -6,7 +6,9 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-exports.handler = async ({ httpMethod, body }) => {
+exports.handler = async (event) => {
+  const { httpMethod, body } = event;
+
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -32,7 +34,7 @@ exports.handler = async ({ httpMethod, body }) => {
   let data;
   try {
     data = JSON.parse(body);
-  } catch (err) {
+  } catch {
     return {
       statusCode: 400,
       headers: corsHeaders,
@@ -43,30 +45,23 @@ exports.handler = async ({ httpMethod, body }) => {
   const { character, message } = data;
 
   try {
-    const gptResponse = await openai.createChatCompletion({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: `You are ${character}, a wise and helpful parrot.`,
-        },
-        { role: "user", content: message },
-      ],
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: message }],
     });
 
-    const reply = gptResponse.data.choices[0].message.content;
-
+    const reply = completion.data.choices[0].message.content;
     return {
       statusCode: 200,
       headers: corsHeaders,
       body: JSON.stringify({ reply }),
     };
   } catch (err) {
-    console.error("OpenAI Error:", err);
+    console.error("❌ OpenAI Error:", err);
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: "OpenAI error" }),
+      body: JSON.stringify({ error: "OpenAI failed to respond." }),
     };
   }
 };
