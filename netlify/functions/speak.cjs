@@ -51,6 +51,9 @@ exports.handler = async function (event) {
     };
   }
 
+  // 🎯 Personality-based speed settings
+  const speed = character === "Lily" ? 0.85 : 1.1;
+
   const options = {
     hostname: "api.elevenlabs.io",
     path: `/v1/text-to-speech/${voiceId}`,
@@ -68,6 +71,7 @@ exports.handler = async function (event) {
       stability: 0.3,
       similarity_boost: 0.75,
     },
+    speed: speed
   });
 
   return new Promise((resolve) => {
