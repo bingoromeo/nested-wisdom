@@ -6,22 +6,25 @@ const voiceMap = {
   Bingo: "v9LgF91V36LGgbLX3iHW",
 };
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
 exports.handler = async function (event) {
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
+      headers: corsHeaders,
+      body: "",
     };
   }
 
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: corsHeaders,
       body: "Method Not Allowed",
     };
   }
@@ -32,7 +35,7 @@ exports.handler = async function (event) {
   } catch {
     return {
       statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: corsHeaders,
       body: "Invalid JSON",
     };
   }
@@ -43,7 +46,7 @@ exports.handler = async function (event) {
   if (!voiceId || !text) {
     return {
       statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: corsHeaders,
       body: "Missing character or text",
     };
   }
@@ -76,7 +79,7 @@ exports.handler = async function (event) {
         resolve({
           statusCode: 200,
           headers: {
-            "Access-Control-Allow-Origin": "*",
+            ...corsHeaders,
             "Content-Type": "text/plain",
           },
           body: audioBuffer.toString("base64"),
@@ -88,7 +91,7 @@ exports.handler = async function (event) {
       console.error("TTS error:", e);
       resolve({
         statusCode: 500,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: corsHeaders,
         body: "Text-to-speech failed.",
       });
     });
