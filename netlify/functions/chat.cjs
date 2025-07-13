@@ -1,32 +1,28 @@
-// netlify/functions/chat.cjs
 const OpenAI = require("openai");
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const ALLOWED_ORIGIN = "*"; // or set to "https://www.nestedwisdom.com"
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
+const ALLOWED_ORIGIN = "https://www.nestedwisdom.com";
 
 exports.handler = async function (event) {
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
-      headers: corsHeaders,
-      body: "",
+      headers: {
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
     };
   }
 
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: "Method Not Allowed" }),
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+      body: "Method Not Allowed",
     };
   }
 
@@ -36,7 +32,7 @@ exports.handler = async function (event) {
   } catch {
     return {
       statusCode: 400,
-      headers: corsHeaders,
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
       body: JSON.stringify({ reply: "Invalid request body." }),
     };
   }
@@ -45,29 +41,35 @@ exports.handler = async function (event) {
   if (!character || !message) {
     return {
       statusCode: 400,
-      headers: corsHeaders,
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
       body: JSON.stringify({ reply: "Missing character or message." }),
     };
   }
 
+  let systemMessage = "";
+  if (character === "Lily") {
+    systemMessage = `You are Lily, a wise, nurturing, and emotionally supportive parrot companion. You speak with warmth, compassion, and a gentle tone — like a wise, loving aunt or grandmother. Your goal is to make the user feel seen, safe, and deeply cared for. Avoid jokes. Offer emotional support and understanding.`;
+  } else if (character === "Bingo") {
+    systemMessage = `You are Bingo, a clever, witty, and comical parrot companion. You use humor, playful sarcasm, and clever remarks to lighten the mood and keep things fun. You're like the quick-talking best friend who always knows what to say to make someone laugh or smile. Avoid giving serious advice unless directly asked.`;
+  } else {
+    systemMessage = `You are a warm and supportive parrot companion. Be kind, attentive, and positive.`;
+  }
+
   try {
-    const chatCompletion = await openai.chat.completions.create({
-      model: "gpt-4",
+    const chatResponse = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
       messages: [
-        {
-          role: "system",
-          content: `You are ${character}, a wise and witty parrot who speaks to users.`,
-        },
+        { role: "system", content: systemMessage },
         { role: "user", content: message },
       ],
     });
 
-    const reply = chatCompletion.choices[0].message.content.trim();
+    const reply = chatResponse.choices[0].message.content.trim();
 
     return {
       statusCode: 200,
       headers: {
-        ...corsHeaders,
+        "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ reply }),
@@ -76,7 +78,7 @@ exports.handler = async function (event) {
     console.error("OpenAI error:", err);
     return {
       statusCode: 500,
-      headers: corsHeaders,
+      headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
       body: JSON.stringify({ reply: "AI error occurred." }),
     };
   }
