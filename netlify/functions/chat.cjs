@@ -7,14 +7,16 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 exports.handler = async ({ httpMethod, body }) => {
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
   if (httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
+      headers: corsHeaders,
       body: "",
     };
   }
@@ -22,7 +24,7 @@ exports.handler = async ({ httpMethod, body }) => {
   if (httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: corsHeaders,
       body: JSON.stringify({ error: "Use POST" }),
     };
   }
@@ -33,7 +35,7 @@ exports.handler = async ({ httpMethod, body }) => {
   } catch (err) {
     return {
       statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: corsHeaders,
       body: JSON.stringify({ error: "Invalid JSON" }),
     };
   }
@@ -48,10 +50,7 @@ exports.handler = async ({ httpMethod, body }) => {
           role: "system",
           content: `You are ${character}, a wise and helpful parrot.`,
         },
-        {
-          role: "user",
-          content: message,
-        },
+        { role: "user", content: message },
       ],
     });
 
@@ -59,15 +58,15 @@ exports.handler = async ({ httpMethod, body }) => {
 
     return {
       statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: corsHeaders,
       body: JSON.stringify({ reply }),
     };
-  } catch (error) {
-    console.error("❌ OpenAI Error:", error);
+  } catch (err) {
+    console.error("OpenAI Error:", err);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ error: "Failed to get response from OpenAI" }),
+      headers: corsHeaders,
+      body: JSON.stringify({ error: "OpenAI error" }),
     };
   }
 };
