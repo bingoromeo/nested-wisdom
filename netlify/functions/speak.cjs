@@ -1,4 +1,5 @@
 const https = require("https");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 const voiceMap = {
@@ -11,6 +12,16 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 };
+
+// Setup Cloudflare R2 client
+const s3 = new S3Client({
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+  },
+});
 
 exports.handler = async function (event) {
   if (event.httpMethod === "OPTIONS") {
@@ -25,82 +36,4 @@ exports.handler = async function (event) {
     return {
       statusCode: 405,
       headers: corsHeaders,
-      body: "Method Not Allowed",
-    };
-  }
-
-  let body;
-  try {
-    body = JSON.parse(event.body);
-  } catch {
-    return {
-      statusCode: 400,
-      headers: corsHeaders,
-      body: "Invalid JSON",
-    };
-  }
-
-  const { character, text } = body;
-  const voiceId = voiceMap[character];
-
-  if (!voiceId || !text) {
-    return {
-      statusCode: 400,
-      headers: corsHeaders,
-      body: "Missing character or text",
-    };
-  }
-
-  // 🎯 Personality-based speed settings
-  const speed = character === "Lily" ? 1.1 : 1.1;
-
-  const options = {
-    hostname: "api.elevenlabs.io",
-    path: `/v1/text-to-speech/${voiceId}`,
-    method: "POST",
-    headers: {
-      "xi-api-key": ELEVENLABS_API_KEY,
-      "Content-Type": "application/json",
-      Accept: "audio/mpeg",
-    },
-  };
-
-  const postData = JSON.stringify({
-    text,
-    voice_settings: {
-      stability: 0.3,
-      similarity_boost: 0.75,
-    },
-    speed: speed
-  });
-
-  return new Promise((resolve) => {
-    const req = https.request(options, (res) => {
-      const chunks = [];
-      res.on("data", (chunk) => chunks.push(chunk));
-      res.on("end", () => {
-        const audioBuffer = Buffer.concat(chunks);
-        resolve({
-          statusCode: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "text/plain",
-          },
-          body: audioBuffer.toString("base64"),
-        });
-      });
-    });
-
-    req.on("error", (e) => {
-      console.error("TTS error:", e);
-      resolve({
-        statusCode: 500,
-        headers: corsHeaders,
-        body: "Text-to-speech failed.",
-      });
-    });
-
-    req.write(postData);
-    req.end();
-  });
-};
+      body: "Method
