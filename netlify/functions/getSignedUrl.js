@@ -1,57 +1,56 @@
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+// /netlify/functions/getSignedUrl.js
+import aws from "aws-sdk";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
+const {
+  R2_ACCESS_KEY_ID,
+  R2_SECRET_ACCESS_KEY,
+  R2_BUCKET,
+  R2_ENDPOINT,
+  CF_ACCOUNT_ID,
+} = process.env;
 
-exports.handler = async (event) => {
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 200, headers: corsHeaders, body: "" };
-  }
-
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, headers: corsHeaders, body: "Method Not Allowed" };
-  }
-
-  let body;
-  try {
-    body = JSON.parse(event.body);
-  } catch (err) {
-    return { statusCode: 400, headers: corsHeaders, body: "Invalid JSON" };
-  }
-
-  const { fileName } = body;
-  if (!fileName) {
-    return { statusCode: 400, headers: corsHeaders, body: "Missing file name" };
+export async function handler(event) {
+  if (event.httpMethod !== "GET") {
+    return {
+      statusCode: 405,
+      body: "Method Not Allowed",
+    };
   }
 
   try {
-    const s3 = new S3Client({
+    const s3 = new aws.S3({
+      accessKeyId: R2_ACCESS_KEY_ID,
+      secretAccessKey: R2_SECRET_ACCESS_KEY,
+      endpoint: R2_ENDPOINT,
+      signatureVersion: "v4",
       region: "auto",
-      endpoint: process.env.R2_ENDPOINT,
-      credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID,
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-      },
     });
 
-    const command = new GetObjectCommand({
-      Bucket: process.env.R2_BUCKET,
-      Key: fileName,
-    });
+    const key = event.queryStringParameters?.key;
 
-    const signedUrl = await getSignedUrl(s3, command, { expiresIn: 60 }); // 60 seconds
+    if (!key) {
+      return {
+        statusCode: 400,
+        body: "Missing 'key' query parameter.",
+      };
+    }
+
+    const params = {
+      Bucket: R2_BUCKET,
+      Key: key,
+      Expires: 3600, // 1 hour signed URL
+    };
+
+    const url = s3.getSignedUrl("getObject", params);
 
     return {
       statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({ url: signedUrl }),
+      body: JSON.stringify({ url }),
     };
-  } catch (err) {
-    console.error("Error generating signed URL:", err);
-    return { statusCode: 500, headers: corsHeaders, body: "Error generating signed URL" };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message }),
+    };
   }
-};
+}
