@@ -36,8 +36,8 @@ exports.handler = async function(event, context) {
     if (key === "lily") {
       reply = `Lily says: Thank you for your question!`;
     }
-    else if (key === "bingo") {
-      reply = `Bingo says: Let's figure this out together.`;
+    else if (key === "willy") {
+      reply = `Willy says: Let's figure this out together.`;
     }
     else {
       reply = `Unknown character: ${character}`;
