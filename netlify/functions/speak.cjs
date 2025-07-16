@@ -10,7 +10,7 @@ const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
 
 const voiceMap = {
   Lily: "pjcYQlDFKMbcOUp6F5GD",
-  Bingo: "v9LgF91V36LGgbLX3iHW"
+  Willy: "v9LgF91V36LGgbLX3iHW"
 };
 
 const corsHeaders = {
